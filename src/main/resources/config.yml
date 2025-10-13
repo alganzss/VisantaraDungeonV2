@@ -1,0 +1,50 @@
+# Plugin Settings
+settings:
+  # Hide players from each other in dungeons
+  hide-players-in-dungeon: true
+
+  # Teleport player back to original location when exiting
+  teleport-back-on-exit: true
+
+  # World generation type for dungeons (NORMAL, FLAT, AMPLIFIED, LARGE_BIOMES)
+  world-type: NORMAL
+
+  # World environment (NORMAL, NETHER, THE_END)
+  world-environment: NORMAL
+
+# Hologram Settings
+hologram:
+  # Default hologram lines if not specified
+  default-lines:
+    - "&e&lCLICK TO ENTER"
+    - "&7Dungeon Portal"
+
+  # Height offset between hologram lines
+  line-spacing: 0.25
+
+# Dungeon Settings
+dungeon:
+  # Default spawn Y level for new dungeons
+  default-spawn-y: 100
+
+  # Disable daylight cycle in dungeons
+  disable-daylight-cycle: true
+
+  # Disable weather cycle in dungeons
+  disable-weather-cycle: true
+
+  # Keep time at specific value (in ticks, 6000 = noon)
+  fixed-time: 6000
+
+# Messages
+messages:
+  dungeon-created: "&aSuccessfully created dungeon: &e{dungeon}"
+  dungeon-deleted: "&aSuccessfully deleted dungeon: &e{dungeon}"
+  dungeon-entered: "&aWelcome to &e{dungeon}&a!"
+  dungeon-exited: "&aYou have exited the dungeon!"
+  dungeon-not-found: "&cDungeon not found: &e{dungeon}"
+  already-in-dungeon: "&cYou are already in a dungeon!"
+  not-in-dungeon: "&cYou are not in a dungeon!"
+  hologram-created: "&aHologram created: &e{id}"
+  hologram-deleted: "&aHologram deleted: &e{id}"
+  no-permission: "&cYou don't have permission to use this command!"

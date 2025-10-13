@@ -1,0 +1,69 @@
+name: VisantaraDungeonV2
+version: '1.0-SNAPSHOT'
+main: my.pikrew.visantaraDungeonV2.VisantaraDungeonV2
+api-version: '1.21'
+author: Pikrew
+description: Advanced dungeon system with hologram entrance
+
+commands:
+  vdungeon:
+    description: Main VDungeon command
+    usage: /vdungeon <create|delete|play|exit|list|hologram|setspawn>
+    aliases: [vd, dungeon]
+
+permissions:
+  vdungeon.*:
+    description: Gives access to all VDungeon commands
+    default: op
+    children:
+      vdungeon.create: true
+      vdungeon.delete: true
+      vdungeon.play: true
+      vdungeon.exit: true
+      vdungeon.list: true
+      vdungeon.setspawn: true
+      vdungeon.hologram.*: true
+
+  vdungeon.create:
+    description: Allows creating dungeons
+    default: op
+
+  vdungeon.delete:
+    description: Allows deleting dungeons
+    default: op
+
+  vdungeon.play:
+    description: Allows entering dungeons
+    default: true
+
+  vdungeon.exit:
+    description: Allows exiting dungeons
+    default: true
+
+  vdungeon.list:
+    description: Allows listing dungeons
+    default: true
+
+  vdungeon.setspawn:
+    description: Allows setting dungeon spawn
+    default: op
+
+  vdungeon.hologram.*:
+    description: Gives access to all hologram commands
+    default: op
+    children:
+      vdungeon.hologram.create: true
+      vdungeon.hologram.delete: true
+      vdungeon.hologram.list: true
+
+  vdungeon.hologram.create:
+    description: Allows creating holograms
+    default: op
+
+  vdungeon.hologram.delete:
+    description: Allows deleting holograms
+    default: op
+
+  vdungeon.hologram.list:
+    description: Allows listing holograms
+    default: op
