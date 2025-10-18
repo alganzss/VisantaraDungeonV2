@@ -67,15 +67,25 @@ public class PlayerManager {
             String otherDungeon = plugin.getDungeonManager().getPlayerDungeon(other.getUniqueId());
             boolean otherCanSeeOthers = canSeeOtherPlayers(other.getUniqueId());
 
+            // Check if players are in the same party
+            boolean inSameParty = plugin.getPartyManager().isInSameParty(player.getUniqueId(), other.getUniqueId());
+
+            // If both are in the same party, they ALWAYS see each other (party override)
+            if (inSameParty) {
+                player.showPlayer(plugin, other);
+                other.showPlayer(plugin, player);
+                continue; // Skip other checks
+            }
+
             // If player chose to hide - hide all others from player's view AND hide player from others
             if (!playerCanSeeOthers) {
                 player.hidePlayer(plugin, other);
-                other.hidePlayer(plugin, player); // Player becomes invisible to others too
+                other.hidePlayer(plugin, player);
             }
             // If other player chose to hide - hide other from player's view
             else if (!otherCanSeeOthers) {
                 player.hidePlayer(plugin, other);
-                other.hidePlayer(plugin, player); // Other is invisible to everyone
+                other.hidePlayer(plugin, player);
             }
             // Both players have visibility enabled - check dungeon logic
             else {
