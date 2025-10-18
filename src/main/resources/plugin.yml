@@ -11,6 +11,11 @@ commands:
     usage: /vdungeon <create|delete|play|exit|list|hologram|setspawn>
     aliases: [vd, dungeon]
 
+  editmenu:
+    description: Open player visibility settings menu
+    usage: /editmenu
+    aliases: [em, settings]
+
 permissions:
   vdungeon.*:
     description: Gives access to all VDungeon commands
@@ -67,3 +72,7 @@ permissions:
   vdungeon.hologram.list:
     description: Allows listing holograms
     default: op
+
+  editmenu.use:
+    description: Allows using the edit menu
+    default: true

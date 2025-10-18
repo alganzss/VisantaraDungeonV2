@@ -67,7 +67,7 @@ public class DungeonManager {
         // Teleport all players out
         if (world != null) {
             for (Player player : world.getPlayers()) {
-                player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
+                exitDungeon(player);
             }
 
             Bukkit.unloadWorld(world, false);
@@ -97,8 +97,10 @@ public class DungeonManager {
         player.teleport(dungeon.getSpawnLocation());
         playerInDungeon.put(player.getUniqueId(), dungeonName.toLowerCase());
 
-        // Update visibility for all players in dungeon
-        plugin.getPlayerManager().updateVisibility(player);
+        // Update visibility with delay to ensure teleport is complete
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getPlayerManager().updateAllVisibility();
+        }, 5L);
 
         return true;
     }
@@ -111,7 +113,7 @@ public class DungeonManager {
         }
 
         Location returnLoc = plugin.getPlayerManager().getReturnLocation(playerId);
-        if (returnLoc != null) {
+        if (returnLoc != null && returnLoc.getWorld() != null) {
             player.teleport(returnLoc);
         } else {
             player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
@@ -120,8 +122,10 @@ public class DungeonManager {
         playerInDungeon.remove(playerId);
         plugin.getPlayerManager().removeReturnLocation(playerId);
 
-        // Update visibility
-        plugin.getPlayerManager().updateVisibility(player);
+        // Update visibility with delay to ensure teleport is complete
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getPlayerManager().updateAllVisibility();
+        }, 5L);
     }
 
     public boolean isInDungeon(Player player) {

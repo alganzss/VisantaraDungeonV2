@@ -1,11 +1,14 @@
 package my.pikrew.visantaraDungeonV2.listeners;
 
 import my.pikrew.visantaraDungeonV2.VisantaraDungeonV2;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class PlayerVisibilityListener implements Listener {
 
@@ -15,9 +18,12 @@ public class PlayerVisibilityListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        plugin.getPlayerManager().updateVisibility(event.getPlayer());
+        // Delay to ensure player is fully loaded
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getPlayerManager().updateAllVisibility();
+        }, 10L);
     }
 
     @EventHandler
@@ -25,10 +31,30 @@ public class PlayerVisibilityListener implements Listener {
         if (plugin.getDungeonManager().isInDungeon(event.getPlayer())) {
             plugin.getDungeonManager().exitDungeon(event.getPlayer());
         }
+
+        // Update visibility for remaining players
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getPlayerManager().updateAllVisibility();
+        }, 5L);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onWorldChange(PlayerChangedWorldEvent event) {
-        plugin.getPlayerManager().updateVisibility(event.getPlayer());
+        // Delay to ensure world change is complete
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getPlayerManager().updateAllVisibility();
+        }, 5L);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        if (event.isCancelled()) {
+            return;
+        }
+
+        // Update visibility after teleport
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            plugin.getPlayerManager().updateAllVisibility();
+        }, 5L);
     }
 }
