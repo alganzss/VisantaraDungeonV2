@@ -67,34 +67,31 @@ public class PlayerManager {
             String otherDungeon = plugin.getDungeonManager().getPlayerDungeon(other.getUniqueId());
             boolean otherCanSeeOthers = canSeeOtherPlayers(other.getUniqueId());
 
-            // Check player's personal visibility setting first
+            // If player chose to hide - hide all others from player's view AND hide player from others
             if (!playerCanSeeOthers) {
                 player.hidePlayer(plugin, other);
-            } else {
+                other.hidePlayer(plugin, player); // Player becomes invisible to others too
+            }
+            // If other player chose to hide - hide other from player's view
+            else if (!otherCanSeeOthers) {
+                player.hidePlayer(plugin, other);
+                other.hidePlayer(plugin, player); // Other is invisible to everyone
+            }
+            // Both players have visibility enabled - check dungeon logic
+            else {
                 // Both players in same dungeon - they can see each other
                 if (playerInDungeon && otherInDungeon && playerDungeon != null && playerDungeon.equals(otherDungeon)) {
                     player.showPlayer(plugin, other);
+                    other.showPlayer(plugin, player);
                 }
                 // Both players NOT in any dungeon - they can see each other
                 else if (!playerInDungeon && !otherInDungeon) {
                     player.showPlayer(plugin, other);
+                    other.showPlayer(plugin, player);
                 }
                 // All other cases: different dungeons or one in dungeon and one not - hide from each other
                 else {
                     player.hidePlayer(plugin, other);
-                }
-            }
-
-            // Check other player's visibility setting
-            if (!otherCanSeeOthers) {
-                other.hidePlayer(plugin, player);
-            } else {
-                // Apply same dungeon logic for the other player
-                if (playerInDungeon && otherInDungeon && playerDungeon != null && playerDungeon.equals(otherDungeon)) {
-                    other.showPlayer(plugin, player);
-                } else if (!playerInDungeon && !otherInDungeon) {
-                    other.showPlayer(plugin, player);
-                } else {
                     other.hidePlayer(plugin, player);
                 }
             }
