@@ -131,10 +131,14 @@ public class PartyCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        UUID partyId = plugin.getPartyManager().getPendingInvite(player.getUniqueId());
-        Party party = plugin.getPartyManager().getPlayerParty(
-                plugin.getPartyManager().parties.get(partyId).getLeader()
-        );
+        final UUID partyId = plugin.getPartyManager().getPendingInvite(player.getUniqueId());
+        final Party party = plugin.getPartyManager().getPartyById(partyId);
+
+        if (party == null) {
+            player.sendMessage(ChatColor.RED + "Party no longer exists!");
+            plugin.getPartyManager().declineInvite(player.getUniqueId());
+            return true;
+        }
 
         if (plugin.getPartyManager().acceptInvite(player.getUniqueId())) {
             player.sendMessage(ChatColor.GREEN + "You joined the party!");

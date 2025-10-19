@@ -16,6 +16,23 @@ commands:
     usage: /editmenu
     aliases: [em, settings]
 
+  party:
+    description: Party management command
+    usage: /party <create|invite|accept|decline|leave|kick|view|disband>
+    aliases: [p]
+
+  dungeonreset:
+    description: Reset player's dungeon lives
+    usage: /dungeonreset <player>
+    permission: dungeonchances.reset
+    permission-message: "You don't have permission to use this command!"
+
+  dungeonreload:
+    description: Reload plugin configuration
+    usage: /dungeonreload
+    permission: dungeonchances.reload
+    permission-message: "You don't have permission to use this command!"
+
 permissions:
   vdungeon.*:
     description: Gives access to all VDungeon commands
@@ -76,3 +93,63 @@ permissions:
   editmenu.use:
     description: Allows using the edit menu
     default: true
+
+  party.*:
+    description: Gives access to all party commands
+    default: true
+    children:
+      party.create: true
+      party.invite: true
+      party.accept: true
+      party.decline: true
+      party.leave: true
+      party.kick: true
+      party.view: true
+      party.disband: true
+
+  party.create:
+    description: Allows creating a party
+    default: true
+
+  party.invite:
+    description: Allows inviting players to party
+    default: true
+
+  party.accept:
+    description: Allows accepting party invitations
+    default: true
+
+  party.decline:
+    description: Allows declining party invitations
+    default: true
+
+  party.leave:
+    description: Allows leaving a party
+    default: true
+
+  party.kick:
+    description: Allows kicking members from party (leader only)
+    default: true
+
+  party.view:
+    description: Allows viewing party members
+    default: true
+
+  party.disband:
+    description: Allows disbanding a party (leader only)
+    default: true
+
+  dungeonchances.*:
+    description: Gives all dungeon chances permissions
+    default: op
+    children:
+      dungeonchances.reset: true
+      dungeonchances.reload: true
+
+  dungeonchances.reset:
+    description: Allows resetting player's dungeon lives
+    default: op
+
+  dungeonchances.reload:
+    description: Allows reloading plugin configuration
+    default: op

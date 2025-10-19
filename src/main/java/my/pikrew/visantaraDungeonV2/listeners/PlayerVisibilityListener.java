@@ -23,6 +23,12 @@ public class PlayerVisibilityListener implements Listener {
         // Delay to ensure player is fully loaded
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             plugin.getPlayerManager().updateAllVisibility();
+
+            // Update scoreboard jika player join di dalam dungeon
+            if (plugin.getDungeonManager().isInDungeon(event.getPlayer())) {
+                plugin.getDungeonChancesManager().initializePlayer(event.getPlayer());
+                plugin.getDungeonChancesManager().updateScoreboard(event.getPlayer());
+            }
         }, 10L);
     }
 
@@ -43,6 +49,13 @@ public class PlayerVisibilityListener implements Listener {
         // Delay to ensure world change is complete
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             plugin.getPlayerManager().updateAllVisibility();
+
+            // Update atau remove scoreboard berdasarkan world
+            if (plugin.getDungeonManager().isInDungeon(event.getPlayer())) {
+                plugin.getDungeonChancesManager().updateScoreboard(event.getPlayer());
+            } else {
+                plugin.getDungeonChancesManager().removeScoreboard(event.getPlayer());
+            }
         }, 5L);
     }
 
@@ -55,6 +68,13 @@ public class PlayerVisibilityListener implements Listener {
         // Update visibility after teleport
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             plugin.getPlayerManager().updateAllVisibility();
+
+            // Update scoreboard setelah teleport
+            if (plugin.getDungeonManager().isInDungeon(event.getPlayer())) {
+                plugin.getDungeonChancesManager().updateScoreboard(event.getPlayer());
+            } else {
+                plugin.getDungeonChancesManager().removeScoreboard(event.getPlayer());
+            }
         }, 5L);
     }
 }

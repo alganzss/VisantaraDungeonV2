@@ -1,3 +1,7 @@
+# ===========================================
+# VisantaraDungeonV2 Configuration
+# ===========================================
+
 # Plugin Settings
 settings:
   # Hide players from each other in dungeons
@@ -35,6 +39,34 @@ dungeon:
 
   # Keep time at specific value (in ticks, 6000 = noon)
   fixed-time: 6000
+
+# ===========================================
+# Dungeon Chances (Lives System)
+# ===========================================
+dungeon-chances:
+  # Jumlah maksimal kesempatan yang dimiliki player
+  max-chances: 3
+
+  # Pengaturan Scoreboard
+  scoreboard:
+    # Judul scoreboard (mendukung color codes dengan &)
+    title: "&c&lDUNGEON"
+
+    # Format tampilan kesempatan (mendukung color codes dengan &)
+    chance-display: "&eKesempatan: &f"
+
+    # Pengaturan tambahan untuk scoreboard
+    dungeon-name: "Wisantara Dungeon"
+    server-info: "discord.wisantara.com"
+
+# ===========================================
+# Fitur Scoreboard:
+# - Tampilan hearts visual (♥) untuk lives
+# - Status indicator (Safe/Warning/Critical)
+# - Border atas dan bawah dengan simbol ▬
+# - Tips dinamis berdasarkan kondisi player
+# - Tampilan profesional dan menarik
+# ===========================================
 
 # Messages
 messages:

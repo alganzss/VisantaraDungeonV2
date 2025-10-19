@@ -3,7 +3,6 @@ package my.pikrew.visantaraDungeonV2.managers;
 import my.pikrew.visantaraDungeonV2.VisantaraDungeonV2;
 import my.pikrew.visantaraDungeonV2.models.Party;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.util.*;
 
@@ -50,11 +49,12 @@ public class PartyManager {
             return false; // Already in a party
         }
 
-        partyInvites.put(invitedId, party.getPartyId());
+        final UUID finalPartyId = party.getPartyId(); // Make final for lambda
+        partyInvites.put(invitedId, finalPartyId);
 
         // Auto-expire invite after 60 seconds
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (partyInvites.containsKey(invitedId) && partyInvites.get(invitedId).equals(party.getPartyId())) {
+            if (partyInvites.containsKey(invitedId) && partyInvites.get(invitedId).equals(finalPartyId)) {
                 partyInvites.remove(invitedId);
             }
         }, 1200L); // 60 seconds
@@ -149,6 +149,10 @@ public class PartyManager {
     public Party getPlayerParty(UUID playerId) {
         UUID partyId = playerParty.get(playerId);
         return partyId != null ? parties.get(partyId) : null;
+    }
+
+    public Party getPartyById(UUID partyId) {
+        return parties.get(partyId);
     }
 
     public boolean hasPartyInvite(UUID playerId) {

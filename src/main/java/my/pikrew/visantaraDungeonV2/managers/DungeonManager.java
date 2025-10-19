@@ -97,9 +97,13 @@ public class DungeonManager {
         player.teleport(dungeon.getSpawnLocation());
         playerInDungeon.put(player.getUniqueId(), dungeonName.toLowerCase());
 
-        // Update visibility with delay to ensure teleport is complete
+        // Update visibility and scoreboard with delay to ensure teleport is complete
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             plugin.getPlayerManager().updateAllVisibility();
+
+            // Initialize and update scoreboard setelah masuk dungeon
+            plugin.getDungeonChancesManager().initializePlayer(player);
+            plugin.getDungeonChancesManager().updateScoreboard(player);
         }, 5L);
 
         return true;
@@ -122,9 +126,12 @@ public class DungeonManager {
         playerInDungeon.remove(playerId);
         plugin.getPlayerManager().removeReturnLocation(playerId);
 
-        // Update visibility with delay to ensure teleport is complete
+        // Update visibility and remove scoreboard with delay to ensure teleport is complete
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             plugin.getPlayerManager().updateAllVisibility();
+
+            // Hilangkan scoreboard setelah keluar dungeon
+            plugin.getDungeonChancesManager().removeScoreboard(player);
         }, 5L);
     }
 
