@@ -3,6 +3,7 @@ package my.pikrew.visantaraDungeonV2.managers;
 import my.pikrew.visantaraDungeonV2.VisantaraDungeonV2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
 
@@ -14,6 +15,7 @@ public class DungeonChancesManager {
 
     private final VisantaraDungeonV2 plugin;
     private final Map<UUID, Integer> playerChances;
+    private final Map<UUID, Boolean> pendingKick; // Track players yang akan di-kick
     private final ScoreboardManager scoreboardManager;
 
     // Config values
@@ -26,6 +28,7 @@ public class DungeonChancesManager {
     public DungeonChancesManager(VisantaraDungeonV2 plugin) {
         this.plugin = plugin;
         this.playerChances = new HashMap<>();
+        this.pendingKick = new HashMap<>();
         this.scoreboardManager = Bukkit.getScoreboardManager();
         loadConfig();
     }
@@ -70,38 +73,70 @@ public class DungeonChancesManager {
             playerChances.put(playerId, currentChances);
 
             // Kirim pesan ke player
-            player.sendMessage(ChatColor.RED + "You died in the dungeon! Lives remaining: " +
-                    ChatColor.YELLOW + currentChances + ChatColor.RED + "/" + maxChances);
+            player.sendMessage("");
+            player.sendMessage(ChatColor.RED + "☠ You died in the dungeon!");
+            player.sendMessage(ChatColor.YELLOW + "Lives remaining: " +
+                    ChatColor.WHITE + currentChances + ChatColor.GRAY + "/" + maxChances);
 
             if (currentChances == 0) {
-                player.sendMessage(ChatColor.DARK_RED + "No lives left! You will be teleported out.");
+                player.sendMessage(ChatColor.DARK_RED + "✘ No lives left! You will be kicked from the dungeon.");
+                pendingKick.put(playerId, true); // Tandai untuk di-kick saat respawn
+            } else {
+                player.sendMessage(ChatColor.GREEN + "✓ You will respawn at the dungeon spawn point.");
             }
+            player.sendMessage("");
 
-            updateScoreboard(player);
+            // Log untuk debugging
+            plugin.getLogger().info(player.getName() + " died in dungeon. Lives: " + currentChances + "/" + maxChances);
         }
     }
 
     public void handlePlayerRespawn(Player player) {
         UUID playerId = player.getUniqueId();
+
+        // Cek apakah player masih di dungeon
+        if (!plugin.getDungeonManager().isInDungeon(player)) {
+            pendingKick.remove(playerId); // Clean up
+            return;
+        }
+
         int currentChances = playerChances.getOrDefault(playerId, maxChances);
 
-        // Delay untuk memastikan respawn selesai
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            // Jika kesempatan habis dan player masih di dungeon, kick dan reset
-            if (currentChances == 0 && plugin.getDungeonManager().isInDungeon(player)) {
-                plugin.getDungeonManager().exitDungeon(player);
-                playerChances.put(playerId, maxChances);
-                player.sendMessage(ChatColor.GREEN + "Your lives have been reset! You can re-enter the dungeon.");
-            }
+        // Jika ada pending kick dan lives habis
+        if (pendingKick.getOrDefault(playerId, false) && currentChances == 0) {
+            plugin.getLogger().info("Kicking " + player.getName() + " from dungeon due to no lives.");
+
+            // Kick dari dungeon
+            plugin.getDungeonManager().exitDungeon(player);
+
+            // Reset lives setelah di-kick
+            playerChances.put(playerId, maxChances);
+            pendingKick.remove(playerId);
+
+            // Kirim pesan
+            player.sendMessage("");
+            player.sendMessage(ChatColor.RED + "═══════════════════════════════");
+            player.sendMessage(ChatColor.DARK_RED + "☠ You ran out of lives!");
+            player.sendMessage(ChatColor.YELLOW + "You have been kicked from the dungeon.");
+            player.sendMessage(ChatColor.GREEN + "Your lives have been reset to " + maxChances + ".");
+            player.sendMessage(ChatColor.GRAY + "You can re-enter the dungeon anytime.");
+            player.sendMessage(ChatColor.RED + "═══════════════════════════════");
+            player.sendMessage("");
+
+            plugin.getLogger().info(player.getName() + " kicked from dungeon and lives reset.");
+        } else {
+            // Masih ada lives, update scoreboard
             updateScoreboard(player);
-        }, 10L);
+
+            plugin.getLogger().info(player.getName() + " respawned in dungeon. Lives: " + currentChances);
+        }
     }
 
     public void updateScoreboard(Player player) {
-        // Cek apakah player di dungeon
+        // PENTING: Hanya tampilkan scoreboard jika player DI DUNGEON
         if (!plugin.getDungeonManager().isInDungeon(player)) {
             // Hilangkan scoreboard jika tidak di dungeon
-            player.setScoreboard(scoreboardManager.getMainScoreboard());
+            removeScoreboard(player);
             return;
         }
 
@@ -194,6 +229,7 @@ public class DungeonChancesManager {
 
     public void resetPlayerChances(UUID playerId) {
         playerChances.put(playerId, maxChances);
+        pendingKick.remove(playerId); // Remove pending kick juga
     }
 
     public void setPlayerChances(UUID playerId, int chances) {

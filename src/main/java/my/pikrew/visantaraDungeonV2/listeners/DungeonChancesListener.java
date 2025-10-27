@@ -2,6 +2,7 @@ package my.pikrew.visantaraDungeonV2.listeners;
 
 import my.pikrew.visantaraDungeonV2.VisantaraDungeonV2;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,12 +35,40 @@ public class DungeonChancesListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        plugin.getDungeonChancesManager().handlePlayerDeath(player);
+
+        // Hanya proses jika player di dungeon
+        if (plugin.getDungeonManager().isInDungeon(player)) {
+            plugin.getDungeonChancesManager().handlePlayerDeath(player);
+
+            // Log untuk debugging
+            plugin.getLogger().info("Player " + player.getName() + " died in dungeon.");
+        }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        plugin.getDungeonChancesManager().handlePlayerRespawn(player);
+
+        // Hanya proses jika player di dungeon
+        if (plugin.getDungeonManager().isInDungeon(player)) {
+            String dungeonName = plugin.getDungeonManager().getPlayerDungeon(player.getUniqueId());
+
+            if (dungeonName != null) {
+                Location dungeonSpawn = plugin.getDungeonManager()
+                        .getDungeon(dungeonName)
+                        .getSpawnLocation();
+
+                if (dungeonSpawn != null) {
+                    // Set respawn location ke dungeon spawn
+                    event.setRespawnLocation(dungeonSpawn);
+                    plugin.getLogger().info("Set respawn location for " + player.getName() + " to dungeon spawn.");
+                }
+            }
+
+            // Handle respawn logic (kick jika lives habis) dengan delay
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                plugin.getDungeonChancesManager().handlePlayerRespawn(player);
+            }, 5L);
+        }
     }
 }
