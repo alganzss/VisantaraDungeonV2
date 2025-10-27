@@ -1,5 +1,6 @@
 package my.pikrew.visantaraDungeonV2.commands;
 
+import my.pikrew.visantaraDungeonV2.Energy.Energy;
 import my.pikrew.visantaraDungeonV2.VisantaraDungeonV2;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -45,6 +46,10 @@ public class VDungeonCommand implements CommandExecutor, TabCompleter {
                 return handleList(sender, args);
             case "setspawn":
                 return handleSetSpawn(sender, args);
+            case "prize":
+                return handlePrize(sender, args);
+            case "energy":
+                return handleEnergy(sender, args);
             default:
                 sendHelp(sender);
                 return true;
@@ -109,10 +114,38 @@ public class VDungeonCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
         String dungeonName = args[1];
 
-        if (plugin.getDungeonManager().enterDungeon(player, dungeonName)) {
-            player.sendMessage(ChatColor.GREEN + "Welcome to dungeon: " + dungeonName + "!");
-        } else {
-            player.sendMessage(ChatColor.RED + "Failed to enter dungeon! Dungeon might not exist.");
+        // Check energy requirement
+        int energyCost = plugin.getEnergyManager().getDungeonEntryCost();
+        Energy playerEnergy = plugin.getEnergyManager().getPlayerEnergy(player.getUniqueId());
+
+        if (!plugin.getEnergyManager().hasEnoughEnergy(player.getUniqueId(), energyCost)) {
+            player.sendMessage("");
+            player.sendMessage(ChatColor.RED + "✗ Not enough energy to enter dungeon!");
+            player.sendMessage(ChatColor.GRAY + "Required: " + ChatColor.GOLD + energyCost + " Energy");
+            player.sendMessage(ChatColor.GRAY + "Current: " + ChatColor.GOLD + playerEnergy.getCurrentEnergy() +
+                    ChatColor.DARK_GRAY + "/" + playerEnergy.getMaxEnergy());
+            player.sendMessage(ChatColor.YELLOW + "Next energy in: " + ChatColor.WHITE +
+                    playerEnergy.getTimeUntilNextEnergyFormatted());
+            player.sendMessage("");
+            return true;
+        }
+
+        // Consume energy and enter dungeon
+        if (plugin.getEnergyManager().consumeForDungeonEntry(player.getUniqueId())) {
+            if (plugin.getDungeonManager().enterDungeon(player, dungeonName)) {
+                player.sendMessage("");
+                player.sendMessage(ChatColor.GREEN + "═══════════════════════════════");
+                player.sendMessage(ChatColor.GOLD + "⚔ " + ChatColor.YELLOW + "Welcome to " + dungeonName + "!");
+                player.sendMessage(ChatColor.GRAY + "Energy consumed: " + ChatColor.GOLD + energyCost);
+                player.sendMessage(ChatColor.GRAY + "Remaining energy: " + ChatColor.GOLD +
+                        playerEnergy.getCurrentEnergy() + ChatColor.DARK_GRAY + "/" + playerEnergy.getMaxEnergy());
+                player.sendMessage(ChatColor.GREEN + "═══════════════════════════════");
+                player.sendMessage("");
+            } else {
+                player.sendMessage(ChatColor.RED + "Failed to enter dungeon! Dungeon might not exist.");
+                // Refund energy if entry failed
+                plugin.getEnergyManager().addEnergy(player.getUniqueId(), energyCost);
+            }
         }
 
         return true;
@@ -133,6 +166,74 @@ public class VDungeonCommand implements CommandExecutor, TabCompleter {
 
         plugin.getDungeonManager().exitDungeon(player);
         player.sendMessage(ChatColor.GREEN + "You have exited the dungeon!");
+
+        return true;
+    }
+
+    private boolean handlePrize(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Only players can use this command!");
+            return true;
+        }
+
+        Player player = (Player) sender;
+        plugin.getPrizeManager().openPrizeGUI(player);
+        return true;
+    }
+
+    private boolean handleEnergy(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Only players can use this command!");
+            return true;
+        }
+
+        Player player = (Player) sender;
+        Energy energy = plugin.getEnergyManager().getPlayerEnergy(player.getUniqueId());
+
+        player.sendMessage("");
+        player.sendMessage(ChatColor.GOLD + "═══════════════════════════════");
+        player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "ENERGY STATUS");
+        player.sendMessage("");
+        player.sendMessage(ChatColor.AQUA + "⚡ Current Energy: " + ChatColor.WHITE +
+                energy.getCurrentEnergy() + ChatColor.GRAY + "/" + energy.getMaxEnergy());
+
+        if (energy.getCurrentEnergy() < energy.getMaxEnergy()) {
+            player.sendMessage(ChatColor.YELLOW + "⏱ Next energy in: " + ChatColor.WHITE +
+                    energy.getTimeUntilNextEnergyFormatted());
+        } else {
+            player.sendMessage(ChatColor.GREEN + "✓ Energy is full!");
+        }
+
+        player.sendMessage("");
+        player.sendMessage(ChatColor.GRAY + "Energy Costs:");
+        player.sendMessage(ChatColor.GOLD + "  • Dungeon Entry: " + ChatColor.WHITE +
+                plugin.getEnergyManager().getDungeonEntryCost() + " Energy");
+        player.sendMessage(ChatColor.GOLD + "  • Claim Prize: " + ChatColor.WHITE +
+                plugin.getEnergyManager().getPrizeClaimCost() + " Energy");
+        player.sendMessage(ChatColor.GOLD + "  • Reroll Prize: " + ChatColor.WHITE +
+                plugin.getEnergyManager().getPrizeRerollCost() + " Energy");
+        player.sendMessage("");
+        player.sendMessage(ChatColor.DARK_GRAY + "Energy regenerates 1 per 5 minutes");
+        player.sendMessage(ChatColor.GOLD + "═══════════════════════════════");
+        player.sendMessage("");
+
+        return true;
+    }
+
+    private boolean handleToggleEnergy(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("vdungeon.toggleenergy")) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
+            return true;
+        }
+
+        boolean currentState = plugin.getConfig().getBoolean("energy.display.enabled", true);
+        boolean newState = !currentState;
+
+        plugin.getConfig().set("energy.display.enabled", newState);
+        plugin.saveConfig();
+
+        sender.sendMessage(ChatColor.GREEN + "Energy action bar display: " +
+                (newState ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"));
 
         return true;
     }
@@ -289,6 +390,8 @@ public class VDungeonCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/vdungeon exit" + ChatColor.GRAY + " - Exit current dungeon");
         sender.sendMessage(ChatColor.YELLOW + "/vdungeon list" + ChatColor.GRAY + " - List all dungeons");
         sender.sendMessage(ChatColor.YELLOW + "/vdungeon setspawn <name>" + ChatColor.GRAY + " - Set dungeon spawn");
+        sender.sendMessage(ChatColor.YELLOW + "/vdungeon prize" + ChatColor.GRAY + " - Open prize GUI");
+        sender.sendMessage(ChatColor.YELLOW + "/vdungeon energy" + ChatColor.GRAY + " - Check your energy");
         sender.sendMessage(ChatColor.YELLOW + "/vdungeon hologram create <id> <dungeon> <lines...>" + ChatColor.GRAY + " - Create hologram");
         sender.sendMessage(ChatColor.YELLOW + "/vdungeon hologram delete <id>" + ChatColor.GRAY + " - Delete hologram");
         sender.sendMessage(ChatColor.YELLOW + "/vdungeon hologram list" + ChatColor.GRAY + " - List all holograms");
@@ -299,7 +402,7 @@ public class VDungeonCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("create", "delete", "play", "exit", "list", "hologram", "setspawn"));
+            completions.addAll(Arrays.asList("create", "delete", "play", "exit", "list", "hologram", "setspawn", "prize", "energy", "toggleenergy"));
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("play") || args[0].equalsIgnoreCase("setspawn")) {
                 completions.addAll(plugin.getDungeonManager().getDungeonNames());

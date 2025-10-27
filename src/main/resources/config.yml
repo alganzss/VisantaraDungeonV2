@@ -44,29 +44,161 @@ dungeon:
 # Dungeon Chances (Lives System)
 # ===========================================
 dungeon-chances:
-  # Jumlah maksimal kesempatan yang dimiliki player
+  # Maximum number of chances a player has
   max-chances: 3
 
-  # Pengaturan Scoreboard
+  # Scoreboard Settings
   scoreboard:
-    # Judul scoreboard (mendukung color codes dengan &)
+    # Scoreboard title (supports color codes with &)
     title: "&c&lDUNGEON"
 
-    # Format tampilan kesempatan (mendukung color codes dengan &)
+    # Chance display format (supports color codes with &)
     chance-display: "&eKesempatan: &f"
 
-    # Pengaturan tambahan untuk scoreboard
+    # Additional scoreboard settings
     dungeon-name: "Wisantara Dungeon"
     server-info: "discord.wisantara.com"
 
 # ===========================================
-# Fitur Scoreboard:
-# - Tampilan hearts visual (♥) untuk lives
-# - Status indicator (Safe/Warning/Critical)
-# - Border atas dan bawah dengan simbol ▬
-# - Tips dinamis berdasarkan kondisi player
-# - Tampilan profesional dan menarik
+# Energy System
 # ===========================================
+energy:
+  # Energy required to enter dungeon
+  dungeon-entry-cost: 25
+
+  # Energy required to claim a prize
+  prize-claim-cost: 30
+
+  # Energy required to reroll prizes
+  prize-reroll-cost: 5
+
+  # Maximum energy a player can have (default: 100)
+  # This is hardcoded but can be referenced here
+  max-energy: 100
+
+  # Energy regeneration time in minutes (default: 5)
+  # This is hardcoded but can be referenced here
+  regeneration-minutes: 5
+
+  # Action bar display settings
+  display:
+    # Enable/disable action bar display
+    # Set to false if you want to disable the energy display
+    enabled: true
+
+    # Update interval in ticks (40 ticks = 2 seconds)
+    update-interval: 40
+
+    # Display format (supports color codes)
+    # {current} = current energy, {max} = max energy, {bar} = energy bar
+    format: "&6⚡ Energi: &e{current} &7/ &e{max}  {bar}"
+
+    # Energy bar settings
+    bar:
+      length: 10                    # Number of bars
+      filled-high: "&a█"            # High energy (>70%)
+      filled-medium: "&e█"          # Medium energy (40-70%)
+      filled-low: "&c█"             # Low energy (<40%)
+      empty: "&8█"                  # Empty bar
+      brackets: "&7[]"              # Brackets around bar
+
+# ===========================================
+# Prize System
+# ===========================================
+prizes:
+  # Prize items that can be won
+  # Each prize has: material, amount, name, lore, and weight
+  # Higher weight = higher chance to appear
+  items:
+    diamond:
+      material: DIAMOND
+      amount: 5
+      name: "&b&l✦ Diamonds"
+      lore:
+        - "&7Sparkling precious gems!"
+        - "&7Perfect for crafting."
+      weight: 100
+
+    emerald:
+      material: EMERALD
+      amount: 10
+      name: "&a&l✦ Emeralds"
+      lore:
+        - "&7Village currency!"
+        - "&7Trade with villagers."
+      weight: 80
+
+    golden_apple:
+      material: GOLDEN_APPLE
+      amount: 3
+      name: "&6&l✦ Golden Apples"
+      lore:
+        - "&7Delicious and healthy!"
+        - "&7Grants regeneration."
+      weight: 50
+
+    enchanted_book:
+      material: ENCHANTED_BOOK
+      amount: 1
+      name: "&d&l✦ Enchanted Book"
+      lore:
+        - "&7Contains magical knowledge!"
+        - "&7Random enchantment inside."
+      weight: 30
+
+    netherite_scrap:
+      material: NETHERITE_SCRAP
+      amount: 2
+      name: "&8&l✦ Netherite Scraps"
+      lore:
+        - "&7Ancient debris fragments!"
+        - "&7Very rare material."
+      weight: 20
+
+    iron_ingot:
+      material: IRON_INGOT
+      amount: 16
+      name: "&f&l✦ Iron Ingots"
+      lore:
+        - "&7Useful metal ingots!"
+        - "&7Essential for crafting."
+      weight: 120
+
+    gold_ingot:
+      material: GOLD_INGOT
+      amount: 12
+      name: "&6&l✦ Gold Ingots"
+      lore:
+        - "&7Shiny gold bars!"
+        - "&7Great for powered rails."
+      weight: 90
+
+    experience_bottle:
+      material: EXPERIENCE_BOTTLE
+      amount: 5
+      name: "&a&l✦ XP Bottles"
+      lore:
+        - "&7Bottles of enchanting!"
+        - "&7Instant experience points."
+      weight: 70
+
+    ender_pearl:
+      material: ENDER_PEARL
+      amount: 8
+      name: "&5&l✦ Ender Pearls"
+      lore:
+        - "&7Teleportation items!"
+        - "&7Throw to teleport."
+      weight: 60
+
+    totem_of_undying:
+      material: TOTEM_OF_UNDYING
+      amount: 1
+      name: "&e&l✦ Totem of Undying"
+      lore:
+        - "&7Grants a second chance!"
+        - "&c&lVERY RARE ITEM"
+      weight: 10
 
 # Messages
 messages:
@@ -80,3 +212,5 @@ messages:
   hologram-created: "&aHologram created: &e{id}"
   hologram-deleted: "&aHologram deleted: &e{id}"
   no-permission: "&cYou don't have permission to use this command!"
+  not-enough-energy: "&cYou don't have enough energy!"
+  energy-consumed: "&aEnergy consumed: &e{amount}"

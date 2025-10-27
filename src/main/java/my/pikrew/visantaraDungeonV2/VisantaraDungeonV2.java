@@ -4,24 +4,19 @@ import my.pikrew.visantaraDungeonV2.commands.VDungeonCommand;
 import my.pikrew.visantaraDungeonV2.commands.EditMenuCommand;
 import my.pikrew.visantaraDungeonV2.commands.PartyCommand;
 import my.pikrew.visantaraDungeonV2.commands.DungeonChancesCommand;
-import my.pikrew.visantaraDungeonV2.listeners.HologramListener;
-import my.pikrew.visantaraDungeonV2.listeners.PlayerVisibilityListener;
-import my.pikrew.visantaraDungeonV2.listeners.EditMenuListener;
-import my.pikrew.visantaraDungeonV2.listeners.DungeonChancesListener;
-import my.pikrew.visantaraDungeonV2.managers.DungeonManager;
-import my.pikrew.visantaraDungeonV2.managers.HologramManager;
-import my.pikrew.visantaraDungeonV2.managers.PlayerManager;
-import my.pikrew.visantaraDungeonV2.managers.PartyManager;
-import my.pikrew.visantaraDungeonV2.managers.DungeonChancesManager;
+import my.pikrew.visantaraDungeonV2.listeners.*;
+import my.pikrew.visantaraDungeonV2.managers.*;
+import my.pikrew.visantaraDungeonV2.Energy.EnergyManager;
+import my.pikrew.visantaraDungeonV2.Energy.PrizeManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Main plugin class for VisantaraDungeonV2
- * Advanced dungeon system with hologram entrance, party system, and player visibility management
+ * Advanced dungeon system with hologram entrance, party system, energy system, and player visibility management
  *
  * @author Pikrew
- * @version 1.0
+ * @version 1.0.1
  */
 public class VisantaraDungeonV2 extends JavaPlugin {
 
@@ -33,6 +28,9 @@ public class VisantaraDungeonV2 extends JavaPlugin {
     private PlayerManager playerManager;
     private PartyManager partyManager;
     private DungeonChancesManager dungeonChancesManager;
+    private EnergyManager energyManager;
+    private PrizeManager prizeManager;
+    private my.pikrew.visantaraDungeonV2.Energy.EnergyDisplayTask energyDisplayTask;
 
     @Override
     public void onEnable() {
@@ -47,7 +45,6 @@ public class VisantaraDungeonV2 extends JavaPlugin {
         saveDefaultConfig();
 
         // Initialize managers in correct order
-        // Order is important: Party must be initialized before Player
         getLogger().info("Initializing managers...");
 
         dungeonManager = new DungeonManager(this);
@@ -55,6 +52,8 @@ public class VisantaraDungeonV2 extends JavaPlugin {
         partyManager = new PartyManager(this);
         playerManager = new PlayerManager(this);
         dungeonChancesManager = new DungeonChancesManager(this);
+        energyManager = new EnergyManager(this);
+        prizeManager = new PrizeManager(this);
 
         // Register commands
         getLogger().info("Registering commands...");
@@ -70,18 +69,32 @@ public class VisantaraDungeonV2 extends JavaPlugin {
                 playerManager.updateAllVisibility();
                 getLogger().info("Player visibility updated!");
             }
-        }, 20L); // Wait 1 second (20 ticks)
+        }, 20L);
+
+        // Start energy display task (update every 2 seconds = 40 ticks)
+        long updateInterval = getConfig().getLong("energy.display.update-interval", 40L);
+        energyDisplayTask = new my.pikrew.visantaraDungeonV2.Energy.EnergyDisplayTask(this);
+        energyDisplayTask.runTaskTimer(this, 20L, updateInterval);
+        getLogger().info("Energy display started!");
 
         getLogger().info("======================================");
         getLogger().info("VDungeon plugin has been enabled!");
         getLogger().info("Version: " + getDescription().getVersion());
         getLogger().info("Author: " + getDescription().getAuthors());
+        getLogger().info("Energy System: Enabled");
+        getLogger().info("Prize System: Enabled");
         getLogger().info("======================================");
     }
 
     @Override
     public void onDisable() {
         getLogger().info("Saving plugin data...");
+
+        // Cancel energy display task
+        if (energyDisplayTask != null) {
+            energyDisplayTask.cancel();
+            getLogger().info("Energy display stopped!");
+        }
 
         // Save dungeon data
         if (dungeonManager != null) {
@@ -99,6 +112,12 @@ public class VisantaraDungeonV2 extends JavaPlugin {
         if (playerManager != null) {
             playerManager.savePlayerSettings();
             getLogger().info("Player settings saved!");
+        }
+
+        // Save energy data
+        if (energyManager != null) {
+            energyManager.saveEnergyData();
+            getLogger().info("Energy data saved!");
         }
 
         // Remove all scoreboards
@@ -146,6 +165,8 @@ public class VisantaraDungeonV2 extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerVisibilityListener(this), this);
         getServer().getPluginManager().registerEvents(new EditMenuListener(this), this);
         getServer().getPluginManager().registerEvents(new DungeonChancesListener(this), this);
+        getServer().getPluginManager().registerEvents(new EnergyListener(this), this);
+        getServer().getPluginManager().registerEvents(new PrizeGUIListener(this), this);
     }
 
     /**
@@ -194,5 +215,21 @@ public class VisantaraDungeonV2 extends JavaPlugin {
      */
     public DungeonChancesManager getDungeonChancesManager() {
         return dungeonChancesManager;
+    }
+
+    /**
+     * Get energy manager
+     * @return EnergyManager instance
+     */
+    public EnergyManager getEnergyManager() {
+        return energyManager;
+    }
+
+    /**
+     * Get prize manager
+     * @return PrizeManager instance
+     */
+    public PrizeManager getPrizeManager() {
+        return prizeManager;
     }
 }
